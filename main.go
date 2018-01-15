@@ -82,11 +82,18 @@ func mustNewKafka(brokerString string) sarama.Client {
 }
 
 func mustSetupLogger(level string) {
+        customJSONFormatter := &log.JSONFormatter{
+            FieldMap: log.FieldMap{
+                log.FieldKeyMsg: "message",
+                log.FieldKeyTime: "@timestamp",
+            },
+        }
+
 	logLevel, err := log.ParseLevel(level)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	log.SetLevel(logLevel)
-	log.SetFormatter(&log.JSONFormatter{})
+	log.SetFormatter(customJSONFormatter)
 }
