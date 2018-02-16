@@ -75,6 +75,9 @@ func startMetricsServer(wg *sync.WaitGroup, shutdown chan struct{}, cfg serverCo
 
 		mux := http.NewServeMux()
 		mux.Handle(cfg.path, promhttp.Handler())
+		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprintln(w, "Kafka offset exporter")
+		})
 		srv := &http.Server{
 			Addr:    fmt.Sprintf(":%d", cfg.port),
 			Handler: mux,
