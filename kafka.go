@@ -243,7 +243,7 @@ func connect(broker *sarama.Broker) error {
 	}
 
 	cfg := sarama.NewConfig()
-	cfg.Version = sarama.V0_10_0_0
+	cfg.Version = sarama.V1_0_0_0
 	if err := broker.Open(cfg); err != nil {
 		return err
 	}
