@@ -61,7 +61,7 @@ type Exporter struct {
 }
 
 type kafkaOpts struct {
-	uri                      []string
+	uri                      string
 	useSASL                  bool
 	useSASLHandshake         bool
 	saslUsername             string
@@ -115,6 +115,13 @@ func canReadFile(path string) bool {
 // NewExporter returns an initialized Exporter.
 func NewExporter(opts kafkaOpts, topicFilter string, groupFilter string) (*Exporter, error) {
 	var zookeeperClient *kazoo.Kazoo
+	brokers := strings.Split(opts.uri, ",")
+	for i := range brokers {
+		brokers[i] = strings.TrimSpace(brokers[i])
+		if !strings.ContainsRune(brokers[i], ':') {
+			brokers[i] += ":9092"
+		}
+	}
 	config := sarama.NewConfig()
 	config.ClientID = clientID
 	kafkaVersion, err := sarama.ParseKafkaVersion(opts.kafkaVersion)
@@ -178,7 +185,7 @@ func NewExporter(opts kafkaOpts, topicFilter string, groupFilter string) (*Expor
 
 	config.Metadata.RefreshFrequency = interval
 
-	client, err := sarama.NewClient(opts.uri, config)
+	client, err := sarama.NewClient(brokers, config)
 
 	if err != nil {
 		plog.Errorln("Error Init Kafka Client")
@@ -476,7 +483,7 @@ func main() {
 
 		opts = kafkaOpts{}
 	)
-	kingpin.Flag("kafka.server", "Address (host:port) of Kafka server.").Default("kafka:9092").StringsVar(&opts.uri)
+	kingpin.Flag("kafka.server", "Address (host:port) of Kafka server.").Default("kafka:9092").StringVar(&opts.uri)
 	kingpin.Flag("sasl.enabled", "Connect using SASL/PLAIN.").Default("false").BoolVar(&opts.useSASL)
 	kingpin.Flag("sasl.handshake", "Only set this to false if using a non-Kafka SASL proxy.").Default("true").BoolVar(&opts.useSASLHandshake)
 	kingpin.Flag("sasl.username", "SASL user name.").Default("").StringVar(&opts.saslUsername)
